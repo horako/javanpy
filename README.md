@@ -1,4 +1,4 @@
-# java-npy
+# javanpy
 
 Java library for reading NumPy .npy files
 

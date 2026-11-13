@@ -1,4 +1,4 @@
-package com.horako.npy;
+package com.horako.javanpy;
 
 import org.junit.jupiter.api.Test;
 

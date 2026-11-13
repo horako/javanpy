@@ -4,10 +4,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.github.horako</groupId>
-    <artifactId>java-npy</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
-    <name>java-npy</name>
+    <groupId>com.horako</groupId>
+    <artifactId>javanpy</artifactId>
+    <version>0.1-SNAPSHOT</version>
+    <name>javanpy</name>
     <description>Java library for reading NumPy .npy files</description>
 
     <properties>
