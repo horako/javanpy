@@ -47,6 +47,10 @@ final class NpyValueDecoder {
         return remaining > 0;
     }
 
+    IOException failure() {
+        return failure;
+    }
+
     long readLong() throws IOException {
         ensureReadable(dtype.kind() == NpyDType.Kind.SIGNED_INTEGER
                 || (dtype.kind() == NpyDType.Kind.UNSIGNED_INTEGER && width < Long.BYTES));
