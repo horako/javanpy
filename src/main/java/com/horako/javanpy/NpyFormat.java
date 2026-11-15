@@ -40,8 +40,8 @@ public final class NpyFormat {
     public static NpyVersion readVersion(InputStream input) throws IOException {
         Objects.requireNonNull(input, "input");
 
-        byte[] magic = input.readNBytes(MAGIC.length);
-        if (magic.length != MAGIC.length) {
+        byte[] magic = new byte[MAGIC.length];
+        if (readExact(input, magic) != magic.length) {
             throw truncatedHeader();
         }
         for (int i = 0; i < MAGIC.length; i++) {
@@ -50,8 +50,8 @@ public final class NpyFormat {
             }
         }
 
-        byte[] version = input.readNBytes(2);
-        if (version.length != 2) {
+        byte[] version = new byte[2];
+        if (readExact(input, version) != version.length) {
             throw truncatedHeader();
         }
 
@@ -78,9 +78,13 @@ public final class NpyFormat {
         Objects.requireNonNull(input, "input");
 
         NpyVersion version = readVersion(input);
+        return readHeader(input, version);
+    }
+
+    static NpyHeader readHeader(InputStream input, NpyVersion version) throws IOException {
         int lengthFieldSize = version == NpyVersion.V1_0 ? 2 : 4;
-        byte[] lengthBytes = input.readNBytes(lengthFieldSize);
-        if (lengthBytes.length != lengthFieldSize) {
+        byte[] lengthBytes = new byte[lengthFieldSize];
+        if (readExact(input, lengthBytes) != lengthBytes.length) {
             throw new EOFException("Truncated NPY header length");
         }
 
@@ -89,10 +93,11 @@ public final class NpyFormat {
             throw new IOException("NPY header exceeds maximum size of " + MAX_HEADER_SIZE + " bytes");
         }
 
-        byte[] headerBytes = input.readNBytes((int) headerSize);
-        if (headerBytes.length != headerSize) {
+        byte[] headerBytes = new byte[(int) headerSize];
+        int headerBytesRead = readExact(input, headerBytes);
+        if (headerBytesRead != headerSize) {
             throw new EOFException("Truncated NPY header: expected " + headerSize
-                    + " bytes, received " + headerBytes.length);
+                    + " bytes, received " + headerBytesRead);
         }
 
         Charset encoding = version == NpyVersion.V3_0 ? StandardCharsets.UTF_8 : ASCII;
@@ -101,6 +106,19 @@ public final class NpyFormat {
             throw new IOException("NPY header must end with a newline");
         }
         return new HeaderParser(header).parse();
+    }
+
+    private static int readExact(InputStream input, byte[] bytes) throws IOException {
+        // InputStream's default bulk read can suppress an IOException after a partial read.
+        int count = 0;
+        while (count < bytes.length) {
+            int value = input.read();
+            if (value < 0) {
+                break;
+            }
+            bytes[count++] = (byte) value;
+        }
+        return count;
     }
 
     private static long readUnsignedLittleEndian(byte[] bytes) {

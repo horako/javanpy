@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Generate checked-in NPY test fixtures using NumPy 2.3.3."""
 
+import argparse
 from pathlib import Path
 
 import numpy as np
@@ -14,14 +15,34 @@ EXPECTED_NUMPY_VERSION = "2.3.3"
 
 
 def save_fixture(
-    name: str, array: np.ndarray, version: tuple[int, int], directory: Path = FIXTURE_DIR
+    name: str,
+    array: np.ndarray,
+    version: tuple[int, int],
+    directory: Path = FIXTURE_DIR,
+    allow_pickle: bool = False,
 ) -> None:
     path = directory / name
     with path.open("wb") as stream:
-        write_array(stream, array, version=version, allow_pickle=False)
+        write_array(stream, array, version=version, allow_pickle=allow_pickle)
+
+
+def save_unsupported_fixtures() -> None:
+    arrays = {
+        "object_pickle.npy": np.array(["object fixture", 42], dtype=object),
+        "string_dtype_pickle.npy": np.array(["variable", "strings"], dtype=np.dtypes.StringDType()),
+    }
+    for name, array in arrays.items():
+        save_fixture(name, array, (1, 0), VALUE_FIXTURE_DIR, allow_pickle=True)
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--unsupported-only",
+        action="store_true",
+        help="generate only the object and StringDType rejection fixtures",
+    )
+    args = parser.parse_args()
     if np.__version__ != EXPECTED_NUMPY_VERSION:
         raise SystemExit(
             f"Expected NumPy {EXPECTED_NUMPY_VERSION}, found {np.__version__}; "
@@ -30,6 +51,11 @@ def main() -> None:
 
     FIXTURE_DIR.mkdir(parents=True, exist_ok=True)
     VALUE_FIXTURE_DIR.mkdir(parents=True, exist_ok=True)
+
+    if args.unsupported_only:
+        save_unsupported_fixtures()
+        print(f"Generated unsupported NPY fixtures with NumPy {np.__version__}")
+        return
 
     scalar = np.array(7, dtype=np.dtype("<i4"))
     vector = np.array([1, 2, 3, 4], dtype=np.dtype("<i4"))
@@ -59,6 +85,7 @@ def main() -> None:
         )
     for name, array in values.items():
         save_fixture(name, array, (1, 0), VALUE_FIXTURE_DIR)
+    save_unsupported_fixtures()
 
     print(f"Generated NPY fixtures with NumPy {np.__version__}")
 
