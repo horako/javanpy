@@ -15,6 +15,8 @@ javanpy is a Java library for reading NumPy `.npy` files.
 
 - `src/main/java/com/horako/javanpy/`: library source code
 - `src/test/java/com/horako/javanpy/`: JUnit tests
+- `docs/`: Documentation
+- `tools`: Utility scripts and tools
 - `pom.xml`: Maven build configuration
 - `README.md`: project overview and build instructions
 - `.github/workflows/`: continuous integration configuration
@@ -30,7 +32,7 @@ javanpy is a Java library for reading NumPy `.npy` files.
 - Explain the implementation plan before making changes.
 - Summarize changes and test results after completing a task.
 - Do not commit, push, or create releases without explicit permission.
-- Agents may modify source code, tests, and other project files when required by
+- Agents may modify source code, documentation, tests, and other project files when required by
   an approved task.
 - Restrictions on which files may be modified apply only to the specific task
   for which they were given.
