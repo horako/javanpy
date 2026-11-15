@@ -41,11 +41,12 @@ Build the project with:
 mvn package
 ```
 
-## Regenerating NPY header test fixtures
+## Regenerating NPY test fixtures
 
 The checked-in `.npy` fixtures under
-`src/test/resources/com/horako/javanpy/npy-header/` were generated with
-NumPy 2.3.3. Regenerate them with an isolated Python environment:
+`src/test/resources/com/horako/javanpy/npy-header/` and
+`src/test/resources/com/horako/javanpy/npy-values/` were generated with NumPy
+2.3.3. Regenerate them with an isolated Python environment:
 
 ```sh
 python3 -m venv .venv-npy-fixtures
