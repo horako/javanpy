@@ -25,10 +25,6 @@ After an I/O failure, the reader cannot continue; metadata remains available.
 `NpyReadOptions.DEFAULT` sets `preserveStringPadding` to false; this option has
 no effect until string reading is supported.
 
-Current header and payload reads operate one byte at a time, which can limit
-throughput on path-backed streams. A follow-up should evaluate bounded bulk
-decoding while preserving error propagation and exact payload boundaries.
-
 Parse a header's scalar descriptor explicitly with
 `NpyDType.parse(header.descr())`. Header parsing itself remains independent of
 dtype validation. The dtype retains the original descriptor and exposes its
@@ -44,6 +40,35 @@ only where byte order is irrelevant: one-byte integers, booleans, byte strings,
 and zero-width Unicode strings. Equality and hash codes use the original
 descriptor string exactly, so equivalent dtypes with different spellings are
 distinct.
+
+## InputStream buffering and performance
+
+Current header and payload reads operate one byte at a time, so unbuffered file
+streams can be significantly slower when reading large arrays. javanpy
+deliberately leaves buffering decisions to the caller, including buffer size
+and stream composition:
+
+```java
+try (InputStream input = new BufferedInputStream(
+        Files.newInputStream(path), 64 * 1024);
+     NpyReader reader = NpyReader.open(input)) {
+
+    while (reader.hasNext()) {
+        float value = reader.readFloat();
+        // Process value
+    }
+}
+```
+
+In an illustrative local benchmark using a 3932 × 3932 float32 matrix
+(approximately 59 MiB), an unbuffered `InputStream` took 23.480 seconds,
+while a `BufferedInputStream` with a 64 KiB buffer took 0.308 seconds, an
+observed speedup of approximately 76×. These observations are
+environment-specific, not guaranteed performance characteristics.
+
+An externally buffered stream may prefetch data beyond the NPY payload. If
+additional data follows the payload, continue reading through the same buffered
+stream.
 
 ## Requirements
 

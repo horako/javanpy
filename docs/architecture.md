@@ -89,6 +89,23 @@ A single sequential decoder is the foundation for both usage patterns:
 
 The decoder handles partial reads without seeking or `mark`/`reset`. It must not request or prefetch data beyond the declared payload. Eager and streaming paths must not have separate binary decoding implementations.
 
+### Input streams and buffering
+
+`InputStream` remains the primary input abstraction. javanpy deliberately does
+not wrap caller-provided streams in `BufferedInputStream` or otherwise introduce
+hidden buffering or read-ahead. This is an architectural decision, not a
+missing optimization: callers control whether and how to buffer, including the
+buffer size, memory use, and stream composition. `NpyReader.open(Path)` must
+not introduce automatic buffering at this stage either.
+
+Sequential decoding must respect the declared NPY payload boundary. A
+caller-supplied `BufferedInputStream` can nevertheless prefetch bytes beyond that
+boundary into its own buffer. If additional data follows the NPY payload, the
+caller must continue reading through the same buffered stream to access it.
+
+Future performance improvements may optimize decoding or use bounded bulk reads,
+but must not introduce hidden read-ahead beyond the requested payload.
+
 ## Existing API compatibility
 
 The current `NpyHeader` record exposes `descr()`, `fortranOrder()`, and `shape()`. It does not expose the version.
